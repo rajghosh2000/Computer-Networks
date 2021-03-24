@@ -51,6 +51,8 @@ int main()
   struct sockaddr_in serverAdd, peer_addr;
   FILE *fp;
   char *filename = "dataBase.txt";
+  char *fname = "fruitSet.txt";
+  char *fn = "rememberLine.txt";
 
   int choice;
   printf("1) Print list to Unique transactions\n2) Start Server\n");
@@ -101,11 +103,32 @@ int main()
     strcpy(fruit[3].fruitName, "Orange");
     strcpy(fruit[4].fruitName, "Cucumber");
 
-    fruit[0].quantity = 50;
-    fruit[1].quantity = 50;
-    fruit[2].quantity = 50;
-    fruit[3].quantity = 50;
-    fruit[4].quantity = 50;
+    char ch, tempNum[5], k = 0;
+    int j, i, n, arrCnt = 0;
+
+    fp = fopen(fname, "r");
+    while ((ch = fgetc(fp)) != EOF)
+    {
+      if (ch == ' ' || ch == '\n')
+      {
+        fruit[arrCnt].quantity = atoi(tempNum);
+        k = 0;
+        arrCnt++;
+      }
+      else
+      {
+        tempNum[k++] = ch;
+      }
+    }
+
+    fruit[arrCnt].quantity = atoi(tempNum);
+    arrCnt++;
+    fclose(fp);
+
+    for(k=0;k<arrCnt;k++)
+    {
+      printf("%d\n",fruit[k].quantity);
+    }
 
     time_t timestmp;
     timestmp = time(NULL);
@@ -122,7 +145,6 @@ int main()
     int usrInc = 0;
 
     char t[1090], cpyFruitId[300], cpyQty[3000];
-    int j, i;
 
     printf("Conecting to Your Server...............\n");
     // Creating socket file descriptor
@@ -217,6 +239,15 @@ int main()
         printf("%s\t", fruit[pos].fruitName);
         printf("%d\t", fruit[pos].quantity);
         printf("%s\n", fruit[pos].soldTimestmp);
+
+        fp = fopen(fname, "w");
+
+        for(k=0;k<5;k++)
+        {
+          fprintf(fp,"%d ",fruit[k].quantity);
+        }
+
+        fclose(fp);
 
         //Updating buyer database
         strcpy(usrTrans[usrInc].usrIp, ip);
