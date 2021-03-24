@@ -125,11 +125,6 @@ int main()
     arrCnt++;
     fclose(fp);
 
-    for(k=0;k<arrCnt;k++)
-    {
-      printf("%d\n",fruit[k].quantity);
-    }
-
     time_t timestmp;
     timestmp = time(NULL);
 
