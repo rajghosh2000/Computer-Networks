@@ -7,33 +7,66 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <time.h>
+#include <signal.h>
+
 #include "fileName.h"
 
 #define PORT 8080
 
+int client_fd = -1, k;
+char c;
 
+void signalHandler()
+{
+    /*
+        This is the defined code i.e when the interrupt is called using CTRL + C then this function is called. 
+    */
+    if (client_fd < 0)
+    {
+        printf("Client Stooped\n");
+        exit(1);
+    }
+    else
+    {
+        printf("\nSummary of the conversation : \n");
+        fclose(fp[k]);
+
+        fp[k] = fopen(fN[k].fname, "r");
+        c = fgetc(fp[k]);
+        while (c != EOF)
+        {
+            printf("%c", c);
+            c = fgetc(fp[k]);
+        }
+        fclose(fp[k]);
+        remove(fN[k].fname);
+
+        close(client_fd);
+        printf("\n[-]Disconnected from server.\n");
+        exit(1);
+    }
+}
 
 int main()
 {
-    int client_fd, chk = 0, i = 0;
-    char buffer[1024],buff[1024],c,f[1];
+    int chk = 0, i = 0;
+    char buffer[1024], cliTime[100], serTime[100];
     char msg[500], Msg[500];
     struct sockaddr_in servaddr;
 
-    int index = getpid();
-    
-    sprintf(fN[index].fname,"%d",index);
-    strcat(fN[index].fname,".txt");
+    k = getpid();
 
-    printf("%s\n",fN[index].fname);
+    sprintf(fN[k].fname, "%d", k);
+    strcat(fN[k].fname, ".txt");
 
-    fp[index] = fopen(fN[index].fname,"w");
-    if(fp[index] == NULL)
+    printf("%s\n", fN[k].fname);
+
+    fp[k] = fopen(fN[k].fname, "w");
+    if (fp[k] == NULL)
     {
         printf("Client Didn't Respond\n");
         exit(1);
     }
-
 
     // Creating socket file descriptor
     if ((client_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
@@ -60,45 +93,62 @@ int main()
         if (strcmp(msg, "exit") == 0)
         {
             printf("\nSummary of the conversation : \n");
-            fclose(fp[index]);
+            fclose(fp[k]);
 
-            fp[index] = fopen(fN[index].fname, "r");
-            c = fgetc(fp[index]);
+            fp[k] = fopen(fN[k].fname, "r");
+            c = fgetc(fp[k]);
             while (c != EOF)
             {
                 printf("%c", c);
-                c = fgetc(fp[index]);
+                c = fgetc(fp[k]);
             }
-            fclose(fp[index]);
-            remove(fN[index].fname);
+            fclose(fp[k]);
+            remove(fN[k].fname);
 
             close(client_fd);
             printf("\n[-]Disconnected from server.\n");
             exit(1);
         }
         printf("You : %s\n", msg);
-
-        fputs("CLIENT : ",fp[index]);
-        fputs(msg,fp[index]);
-        fputs("\n",fp[index]);
-
-
         printf("Server is Tying ......\n");
 
+        fputs("CLIENT : ", fp[k]);
+        fputs(msg, fp[k]);
+        fputs("\n\t", fp[k]);
+
         clock_t begin = clock();
-        
+
+        n = recvfrom(client_fd, (char *)cliTime, 100,
+                     MSG_WAITALL, (struct sockaddr *)&servaddr,
+                     &len);
+        cliTime[n] = '\0';
+
         n = recvfrom(client_fd, (char *)buffer, 1024,
                      MSG_WAITALL, (struct sockaddr *)&servaddr,
                      &len);
         buffer[n] = '\0';
+
+        n = recvfrom(client_fd, (char *)serTime, 100,
+                     MSG_WAITALL, (struct sockaddr *)&servaddr,
+                     &len);
+        serTime[n] = '\0';
         clock_t end = clock();
         double delay = (double)(end - begin) / CLOCKS_PER_SEC;
+
         printf("Server : %s\n", buffer);
 
-        fputs("SERVER : ",fp[index]);
-        fputs(buffer,fp[index]);
+        fputs("Message sent at : ", fp[k]);
+        fputs(cliTime, fp[k]);
+        fputs("\n", fp[k]);
+        fputs("SERVER : ", fp[k]);
+        fputs(buffer, fp[k]);
+        fputs("\tMessage sent at : ", fp[k]);
+        fputs(serTime, fp[k]);
+        fputs("\n--------------------------------------------------\n", fp[k]);
 
         printf("Response Time : %f ms\n\n", delay);
+
+        signal(SIGINT, signalHandler);
     }
     return 0;
 }

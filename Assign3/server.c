@@ -15,7 +15,7 @@ int main()
 {
     int server_fd, acceptClient;
     char buffer[50000];
-    char msg[500], dateMsg[500];
+    char msg[500], cliTime[100], serTime[100];
     struct sockaddr_in servaddr, cliaddr;
     pid_t childpid;
 
@@ -50,26 +50,37 @@ int main()
     addr_size = sizeof(struct sockaddr_in);
 
     while (1)
-    {  
-        time_t ltime; /* calendar time */
+    {
+        time_t t;
+        time(&t);
+
         n = recvfrom(server_fd, (char *)buffer, 5000,
                      MSG_WAITALL, (struct sockaddr *)&cliaddr,
                      &len);
         buffer[n] = '\0';
+        strcpy(cliTime, ctime(&t));
         if (strcmp(buffer, "exit") == 0)
         {
             printf("Disconnected from %s:%d\n\n\n", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
         }
         else
-        {   
-            ltime = time(NULL); /* get current cal time */
-            printf("Client from %s:%d has sent : %s\n\n",inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port), buffer);
-            printf("Enter the msg to send to client %s:%d  : ",inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
+        {
+
+            printf("Client from %s:%d has sent : %s\n\n", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port), buffer);
+            
+            sendto(server_fd, (const char *)cliTime, strlen(cliTime),
+                   MSG_CONFIRM, (const struct sockaddr *)&cliaddr,
+                   len);
+            printf("Enter the msg to send to client %s:%d  : ", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
             fgets(msg, sizeof(msg), stdin);
+            strcpy(serTime, ctime(&t));
+
             sendto(server_fd, (const char *)msg, strlen(msg),
                    MSG_CONFIRM, (const struct sockaddr *)&cliaddr,
                    len);
-            printf("You : %s\n", msg);
+            sendto(server_fd, (const char *)serTime, strlen(serTime),
+                   MSG_CONFIRM, (const struct sockaddr *)&cliaddr,
+                   len);
         }
     }
     close(server_fd);
