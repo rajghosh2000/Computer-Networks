@@ -59,7 +59,6 @@ int main()
     sprintf(fN[k].fname, "%d", k);
     strcat(fN[k].fname, ".txt");
 
-    printf("%s\n", fN[k].fname);
 
     fp[k] = fopen(fN[k].fname, "w");
     if (fp[k] == NULL)
@@ -69,7 +68,7 @@ int main()
     }
 
     // Creating socket file descriptor
-    if ((client_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+    if ((client_fd = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
     {
         perror("socket creation failed");
         exit(EXIT_FAILURE);
@@ -79,7 +78,7 @@ int main()
 
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(PORT);
-    servaddr.sin_addr.s_addr = INADDR_ANY;
+    servaddr.sin_addr.s_addr = inet_addr("10.0.0.1");
 
     int n, len;
     while (1)
@@ -135,8 +134,10 @@ int main()
         clock_t end = clock();
         double delay = (double)(end - begin) / CLOCKS_PER_SEC;
 
-        printf("Server : %s\n", buffer);
-
+        printf("Server : %s", buffer);
+        
+	printf("Response Time : %f ms\n\n", delay);
+	
         fputs("Message sent at : ", fp[k]);
         fputs(cliTime, fp[k]);
         fputs("\n", fp[k]);
@@ -146,7 +147,7 @@ int main()
         fputs(serTime, fp[k]);
         fputs("\n--------------------------------------------------\n", fp[k]);
 
-        printf("Response Time : %f ms\n\n", delay);
+        
 
         signal(SIGINT, signalHandler);
     }

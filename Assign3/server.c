@@ -42,7 +42,7 @@ int main()
         exit(EXIT_FAILURE);
     }
     printf("[+]Bind to port %d\n", PORT);
-    printf("[+] Wating for clients .....\n");
+    printf("[+] Wating for clients .....\n\n");
 
     int len, n, m, conn = 0;
     len = sizeof(cliaddr);
@@ -61,17 +61,17 @@ int main()
         strcpy(cliTime, ctime(&t));
         if (strcmp(buffer, "exit") == 0)
         {
-            printf("Disconnected from %s:%d\n\n\n", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
+            printf("\nDisconnected from %s:%d\n\n\n", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
         }
         else
         {
 
-            printf("Client from %s:%d has sent : %s\n\n", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port), buffer);
+            printf("\nClient from %s:%d has sent : %s\n\n", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port), buffer);
             
             sendto(server_fd, (const char *)cliTime, strlen(cliTime),
                    MSG_CONFIRM, (const struct sockaddr *)&cliaddr,
                    len);
-            printf("Enter the msg to send to client %s:%d  : ", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
+            printf("\nEnter the msg to send to client %s:%d  : ", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
             fgets(msg, sizeof(msg), stdin);
             strcpy(serTime, ctime(&t));
 
